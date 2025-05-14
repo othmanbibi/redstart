@@ -331,14 +331,6 @@ def _(mo):
     return
 
 
-app._unparsable_cell(
-    r"""
-    def f()
-    """,
-    name="_"
-)
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -398,7 +390,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
