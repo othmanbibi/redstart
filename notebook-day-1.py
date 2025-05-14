@@ -230,7 +230,7 @@ def _():
     g = 1 #m/s^2
     l = 1 #m
     M = 1 #kg
-    return
+    return M, l
 
 
 @app.cell(hide_code=True)
@@ -292,9 +292,51 @@ def _(mo):
     return
 
 
-@app.cell
-def _():
+@app.function
+def poid(M, g):
+    return (0,-M*g)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    D'après le principe fondamentale de la dynamique :
+
+    $$
+    \vec{P} + \vec{f} = M*\vec{a}
+    $$
+
+    En projetant sur la base cartésienne $(\vec{x},\vec{y})$, On obtient : 
+
+    $$
+    \ddot{x}=0+f_x
+    $$
+
+    $$
+    \ddot{y}=-M*g + f_y
+    $$
+
+    Alors : 
+
+    $$
+    \ddot{x}=- f*\sin(\theta + \phi)
+    $$
+
+    $$
+    \ddot{y}=-M*g + f*\cos(\theta + \phi)
+    $$
+    """
+    )
     return
+
+
+app._unparsable_cell(
+    r"""
+    def f()
+    """,
+    name="_"
+)
 
 
 @app.cell(hide_code=True)
@@ -313,9 +355,101 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    On suppose le 'booster' comme une tige (On suppose que le rayon du cylindre est négligeable devant sa hauteur)
+
+    Alors l'expression du moment d'inertie : 
+
+    $$
+    J = \frac{1}{12}M(2*l)^2 = \frac{1}{3}Ml^2
+    $$
+
+    """
+    )
+    return
+
+
+@app.cell
+def _(M, l):
+    J = (1/3)*M*(l**2)
+    return (J,)
+
+
+@app.cell
+def _(J):
+    print(J)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Tilt
 
     Give the ordinary differential equation that governs the tilt angle $\theta$.
+    """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.center(mo.image(src="public/images/forces2.png"))
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    D'après le théorème des moments dynamiques : 
+
+    $$
+    \frac{d\vec{L}_O}{dt} = \sum \vec{M}_O^{\text{ext}}
+    $$
+
+    Avec : 
+
+    - $\vec{L}_O$ : moment cinétique par rapport à un point $O$  
+    - $\vec{M}_O^{\text{ext}}$ : moment résultant des forces extérieures par rapport à $O$
+
+
+
+
+    Alors par rapport au point G:
+
+    - Moment cinétique :  $L = J \dot{\theta}$
+
+    Le théorème devient:
+
+    $$
+    \frac{dL}{dt} = J\ddot{\theta} = M_{G}
+    $$
+
+    Avec :
+
+    - $J$ : moment d’inertie du solide
+  
+    - $\omega$ : vitesse angulaire
+
+    - $\ddot{\theta}$ : accélération angulaire
+
+    - $M_{G}$ : moment des forces extérieures
+
+    Or : $M_{G} = (\overrightarrow{OG} \times \vec{f})*\vec{z} = -l*(f_x*\cos(\theta) + f_y*\sin(\theta))$
+
+
+    Donc l'équation diférentielle par rapport à $\theta$ : 
+
+    $$
+    J \ddot{\theta} = - l*f*\sin(\theta)\cos(\theta+\phi) + l*f*\cos(\theta) \sin(\theta+\phi)
+    $$
+
+    Donc : 
+
+    $$
+    J \ddot{\theta} = f*l*\sin(\phi)
+    $$
     """
     )
     return
