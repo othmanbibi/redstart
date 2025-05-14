@@ -246,15 +246,10 @@ def _(mo):
 
 
 @app.cell
-def _():
-    return
-
-
-@app.cell
-def _(R):
+def _(R, np):
     def force(f,theta,phi):
-        fx = f*R(theta+phi)[0][0]
-        fy = f*R(theta+phi)[1][1]
+        fx,fy = R(theta+phi)*np.array([0,-f])
+        return fx,fy
     return
 
 
