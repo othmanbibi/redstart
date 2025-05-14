@@ -840,5 +840,92 @@ def _(mo):
     return
 
 
+@app.cell
+def _(FFMpegWriter, FuncAnimation, M, R, g, l, np, patches, plt, tqdm):
+
+    def draw_booster(ax, x, y, theta, f, phi):
+        center = np.array([x, y])
+        dir_booster = R(theta) @ np.array([0, 1])
+        perp = np.array([-dir_booster[1], dir_booster[0]])
+        base = center - l * dir_booster
+        top = center + l * dir_booster
+
+        w = 0.05 * l
+        c1 = base + w * perp
+        c2 = top + w * perp
+        c3 = top - w * perp
+        c4 = base - w * perp
+
+        ax.plot([c1[0], c2[0], c3[0], c4[0], c1[0]],
+                [c1[1], c2[1], c3[1], c4[1], c1[1]],
+                'k-', lw=2)
+
+        if f > 0:
+            flame_dir = R(theta + phi) @ np.array([0, -1])
+            flame_len = l * (f / (M * g))
+            flame_tip = base + flame_dir * flame_len
+            ax.plot([base[0], flame_tip[0]], [base[1], flame_tip[1]], color='orange', lw=3)
+
+        landing_zone_size = 0.2
+        rect = patches.Rectangle((-landing_zone_size/2, -landing_zone_size/2), 
+                         landing_zone_size, landing_zone_size, 
+                         color='orange', alpha=0.8)
+        ax.add_patch(rect)
+
+        ax.set_xlim(-5, 5)
+        ax.set_ylim(-1, 11)  
+        ax.set_aspect('equal')
+        ax.grid(True)
+
+    def make_booster_video(output):
+        fig, ax = plt.subplots(figsize=(10, 6))
+        num_frames = 600  
+        fps = 30
+    
+        scenarios = [
+            {"x": 0.0, "y": 10.0, "theta": 0.0, "f": 0, "phi": 0, "title": "Scenario 1: Hovering (f=0)"},
+            {"x": 0.0, "y": 10.0, "theta": 0.0, "f": M*g, "phi": 0, "title": "Scenario 2: f=Mg, φ=0"},
+            {"x": 0.0, "y": 10.0, "theta": 0.0, "f": M*g, "phi": np.pi/8, "title": "Scenario 3: f=Mg, φ=π/8"},
+            # For the controlled landing, we'll simulate a simple descent
+            {"x": 0.0, "y": lambda t: 10 - t/5 * 9.5 if t < 5 else 0.5, 
+             "theta": 0.0, "f": M*g, "phi": 0, "title": "Scenario 4: Controlled Landing"}
+        ]
+    
+        def animate(frame_index):
+            ax.clear()
+            time = frame_index / fps  
+            scenario_index = min(int(time / 5), 3)  
+            scenario = scenarios[scenario_index]
+        
+            params = {}
+            for key, val in scenario.items():
+                if key == "title":
+                    continue
+                if callable(val):
+                    params[key] = val(time % 5)  
+                else:
+                    params[key] = val
+                
+            draw_booster(ax, params["x"], params["y"], params["theta"], params["f"], params["phi"])
+        
+            # Add title
+            ax.set_title(f"{scenario['title']}\nTime: {time:.1f}s")
+        
+            pbar.update(1)
+    
+        pbar = tqdm(total=num_frames, desc="Generating booster video")
+        anim = FuncAnimation(fig, animate, frames=num_frames)
+        writer = FFMpegWriter(fps=fps)
+        anim.save(output, writer=writer)
+    
+        print()
+        print(f"Animation saved as {output!r}")
+
+    # Create and display the video
+    _filename = "booster_animation.mp4"
+    make_booster_video(_filename)
+    return
+
+
 if __name__ == "__main__":
     app.run()
