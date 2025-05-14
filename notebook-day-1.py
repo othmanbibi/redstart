@@ -63,6 +63,7 @@ def _():
     import matplotlib as mpl
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation, FFMpegWriter
+    import matplotlib.patches as patches
 
     from tqdm import tqdm
 
@@ -71,7 +72,9 @@ def _():
     import autograd.numpy as np
     import autograd.numpy.linalg as la
     from autograd import isinstance, tuple
-    return FFMpegWriter, FuncAnimation, np, plt, tqdm
+
+    from scipy.integrate import solve_ivp
+    return FFMpegWriter, FuncAnimation, np, plt, solve_ivp, tqdm
 
 
 @app.cell(hide_code=True)
@@ -310,21 +313,21 @@ def _(mo):
     En projetant sur la base cartésienne $(\vec{x},\vec{y})$, On obtient : 
 
     $$
-    \ddot{x}=0+f_x
+    M*\ddot{x}=0+f_x
     $$
 
     $$
-    \ddot{y}=-M*g + f_y
+    M*\ddot{y}=-M*g + f_y
     $$
 
     Alors : 
 
     $$
-    \ddot{x}=- f*\sin(\theta + \phi)
+    \ddot{x}=- \frac{f*\sin(\theta + \phi)}{M}
     $$
 
     $$
-    \ddot{y}=-M*g + f*\cos(\theta + \phi)
+    \ddot{y}=-g + \frac{f*\cos(\theta + \phi)}{M}
     $$
     """
     )
@@ -499,11 +502,11 @@ def _(mo):
     On transforme les équations : 
 
     $$
-    \ddot{x} = -f \sin(\theta + \phi) \tag{1}
+    \ddot{x} = \frac{-f \sin(\theta + \phi)}{M} \tag{1}
     $$
 
     $$
-    \ddot{y} = -Mg + f \cos(\theta + \phi) \tag{2}
+    \ddot{y} = -g + \frac{f \cos(\theta + \phi)}{M} \tag{2}
     $$
 
     $$
@@ -534,9 +537,9 @@ def _(mo):
     =
     \begin{bmatrix}
     \dot{x} \\
-    - f \sin(\theta + \phi) \\
+    - \frac{-f \sin(\theta + \phi)}{M} \\
     \dot{y} \\
-    - Mg + f \cos(\theta + \phi) \\
+    - g + \frac{f \cos(\theta + \phi)}{M} \\
     \dot{\theta} \\
     \frac{f l \sin(\phi)}{J}
     \end{bmatrix}
@@ -555,9 +558,9 @@ def _(mo):
     \mathbf{F}(\mathbf{X}, t) =
     \begin{bmatrix}
     \dot{x} \\
-    - f \sin(\theta + \phi) \\
+    - \frac{-f \sin(\theta + \phi)}{M} \\
     \dot{y} \\
-    - Mg + f \cos(\theta + \phi) \\
+    - g + \frac{f \cos(\theta + \phi)}{M} \\
     \dot{\theta} \\
     \frac{f l \sin(\phi)}{J}
     \end{bmatrix}
@@ -574,9 +577,9 @@ def _(J, M, f, g, l, np, phi, solve_ivp):
     def f_phi(t, z):
         x, dx, y, dy, theta, dtheta = z
     
-        ddx = -f * np.sin(theta + phi)
-        ddy = -M * g + f * np.cos(theta + phi)
-        ddtheta = (f * l * np.sin(phi)) / J
+        ddx = -f(t)* np.sin(theta + phi)/M
+        ddy = -g + f(t) * (np.cos(theta + phi)/M)
+        ddtheta = -(f(t) * l * np.sin(phi)) / J
 
         return np.array([dx,ddx,dy,ddy,dtheta,ddtheta])
 
@@ -603,8 +606,132 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    on cherche une trajectoire qui verifie
+
+
+    * $y(0) = 10$
+    * $\dot{y}(0) = 0$
+    * $y(5) = l = 1$
+    * $\dot{y}(5) = 0$
+
+    On suppose qu'on a une trajectoire de reference y(t) est une fonction polynomiale de t de 3eme degree 
+
+
+    $$
+    y(t) = a t^3 + b t^2 + c t + d
+    $$
+
+
+
+    * $y(0) = 10$ → $d = 10$
+    * $\dot{y}(0) = 0$ → $c = 0$
+    * $y(5) = l$ → $125a + 25b + 5c + d = l = 1$
+
+    * $\dot{y}(5) = 0$
+
+    $$
+    \dot{y}(t) = 3a t^2 + 2b t + c
+    \quad \Rightarrow \quad 
+    \dot{y}(5) = 75a + 10b + c = 0
+    $$
+
+
+    $$
+    \begin{cases}
+    75a + 10b = 0\\
+    125a + 25b =  - 9
+    \end{cases}
+    $$
+
+
+
+
+    Alors: 
+
+    $$
+    a = \frac{18}{125}
+    $$
+
+    $$
+    b = \frac{-27}{25}
+    $$
+
+    donc: 
+
+    $$
+    f(t) = \frac{1}{M}\ddot{y}(t)  + g = \frac{(6 \cdot a \cdot t + 2 b \cdot t )}{M} +g
+    $$
+
+
+
+
+    """
+    )
+    return
+
+
 @app.cell
-def _():
+def _(J, M, g, l, np, solve_ivp):
+
+    v0 = 0.0  
+
+    a = (2.5 * v0 + 9) / 62.5
+    b = (-v0 - 75 * a) / 10
+    c = v0
+    d = 10
+
+    def y_ddot(t):
+        return 6 * a * t + 2 * b
+
+    def f_phi2(t, y):
+        f_t = y_ddot(t) + M * g
+        return np.array([f_t, 0.0])  
+
+    def redstart_solve2(t_span, y0, f_phi2):
+        def ode(t, y):
+            x, dx, y_pos, dy, theta, dtheta = y
+            f, phi = f_phi2(t, y)
+
+            ddx = -f * np.sin(theta + phi)
+            ddy = -M * g + f * np.cos(theta + phi)
+            ddtheta = (f * l * np.sin(phi)) / J
+
+            return [dx, ddx, dy, ddy, dtheta, ddtheta]
+
+        sol_ivp = solve_ivp(ode, t_span, y0, dense_output=True)
+        return lambda t: sol_ivp.sol(t)
+
+
+
+
+    return f_phi2, redstart_solve2, v0
+
+
+@app.cell
+def _(f_phi2, l, np, plt, redstart_solve2, v0):
+    t_span = [0, 5]
+    y0 = [0, 0, 10, v0, 0, 0]
+    sol = redstart_solve2(t_span, y0, f_phi2)
+
+    t = np.linspace(t_span[0], t_span[1], 1000)
+    Y = sol(t)
+    y_t = Y[2]
+    ydot_t = Y[3]
+
+    plt.plot(t, y_t, label=r"$y(t)$")
+    plt.plot(t, ydot_t, label=r"$dy/dt$")
+
+    plt.plot(t, l * np.ones_like(t), 'k--', label=r"$y = \ell$")
+    plt.xlabel("time $t$")
+    plt.ylabel("height $y$")
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
     return
 
 
