@@ -230,7 +230,7 @@ def _():
     g = 1 #m/s^2
     l = 1 #m
     M = 1 #kg
-    return M, l
+    return M, g, l
 
 
 @app.cell(hide_code=True)
@@ -495,6 +495,104 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+
+    On transforme les équations : 
+
+    $$
+    \ddot{x} = -f \sin(\theta + \phi) \tag{1}
+    $$
+
+    $$
+    \ddot{y} = -Mg + f \cos(\theta + \phi) \tag{2}
+    $$
+
+    $$
+    J \ddot{\theta} = f l \sin(\phi) \tag{3}
+    $$
+
+    En une équation de première degrée.
+
+    Pour cela on définit le vecteur : 
+
+    $$
+    \mathbf{X} = \begin{bmatrix}
+    x \\ \dot{x} \\
+    y \\ \dot{y} \\
+    \theta \\ \dot{\theta}
+    \end{bmatrix}
+    $$
+
+    Donc l'ODE devient : 
+
+    $$
+    \frac{d}{dt}
+    \begin{bmatrix}
+    x \\ \dot{x} \\
+    y \\ \dot{y} \\
+    \theta \\ \dot{\theta}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    \dot{x} \\
+    - f \sin(\theta + \phi) \\
+    \dot{y} \\
+    - Mg + f \cos(\theta + \phi) \\
+    \dot{\theta} \\
+    \frac{f l \sin(\phi)}{J}
+    \end{bmatrix}
+    $$
+
+
+    Donc : 
+
+    $$
+    \frac{d\mathbf{X}}{dt} = \mathbf{F}(\mathbf{X}, t)
+    $$
+
+    Avec : 
+
+    $$
+    \mathbf{F}(\mathbf{X}, t) =
+    \begin{bmatrix}
+    \dot{x} \\
+    - f \sin(\theta + \phi) \\
+    \dot{y} \\
+    - Mg + f \cos(\theta + \phi) \\
+    \dot{\theta} \\
+    \frac{f l \sin(\phi)}{J}
+    \end{bmatrix}
+    $$
+
+    """
+    )
+    return
+
+
+@app.cell
+def _(J, M, f, g, l, np, phi, solve_ivp):
+    # On définit la fonction F
+    def f_phi(t, z):
+        x, dx, y, dy, theta, dtheta = z
+    
+        ddx = -f * np.sin(theta + phi)
+        ddy = -M * g + f * np.cos(theta + phi)
+        ddtheta = (f * l * np.sin(phi)) / J
+
+        return np.array([dx,ddx,dy,ddy,dtheta,ddtheta])
+
+    # On définit redstart_solve
+
+    def redstart_solve(t_span, y0, f_phi):
+        sol = solve_ivp(f_phi, t_span, y0, dense_output=True)
+        return sol
+
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Controlled Landing
 
     Assume that $x$, $\dot{x}$, $\theta$ and $\dot{\theta}$ are null at $t=0$. For $y(0)= 10$ and $\dot{y}(0)$, can you find a time-varying force $f(t)$ which, when applied in the booster axis ($\theta=0$), yields $y(5)=\ell$ and $\dot{y}(5)=0$?
@@ -502,6 +600,11 @@ def _(mo):
     Simulate the corresponding scenario to check that your solution works as expected.
     """
     )
+    return
+
+
+@app.cell
+def _():
     return
 
 
