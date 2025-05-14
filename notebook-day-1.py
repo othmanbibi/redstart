@@ -74,7 +74,7 @@ def _():
     from autograd import isinstance, tuple
 
     from scipy.integrate import solve_ivp
-    return FFMpegWriter, FuncAnimation, np, plt, solve_ivp, tqdm
+    return FFMpegWriter, FuncAnimation, np, patches, plt, solve_ivp, tqdm
 
 
 @app.cell(hide_code=True)
@@ -752,6 +752,57 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.center(mo.image("public/images/booster_drawing.png"))
+    return
+
+
+@app.cell
+def _(M, R, g, l, np, patches, plt):
+    def draw(x, y, theta, f, phi):
+        center = np.array([x, y])
+        dir_booster = R(theta) @ np.array([0, 1])
+        perp = np.array([-dir_booster[1], dir_booster[0]])
+        base = center - l * dir_booster
+        top = center + l * dir_booster
+
+        w = 0.05 * l
+        c1 = base + w * perp
+        c2 = top + w * perp
+        c3 = top - w * perp
+        c4 = base - w * perp
+
+        flame_dir = R(theta + phi) @ np.array([0, -1])
+        flame_len = l * (f / (M * g))
+        flame_tip = base + flame_dir * flame_len
+
+        fig, ax = plt.subplots()
+
+
+        ax.plot([c1[0], c2[0], c3[0], c4[0], c1[0]],
+                [c1[1], c2[1], c3[1], c4[1], c1[1]],
+                'k-', lw=2)
+
+        ax.plot([base[0], flame_tip[0]], [base[1], flame_tip[1]], color='orange', lw=3)
+
+
+        landing_zone_size = 0.5
+        rect = patches.Rectangle((-landing_zone_size/2, -landing_zone_size/2), 
+                         landing_zone_size, landing_zone_size, 
+                         color='orange', alpha=0.8)
+        ax.add_patch(rect)
+
+
+        ax.set_xlim(-2, 2)
+        ax.set_ylim(-1, 12)
+
+        ax.set_aspect('equal')
+        plt.grid(True)
+        plt.show()
+    return (draw,)
+
+
+@app.cell
+def _(draw, np):
+    draw(0,5,0.5,1, np.pi/10)
     return
 
 
