@@ -140,6 +140,18 @@ def _(np):
             [np.cos(alpha), -np.sin(alpha)], 
             [np.sin(alpha),  np.cos(alpha)]
         ])
+    return (R,)
+
+
+@app.cell
+def _(R, np):
+    R(np.pi)
+    return
+
+
+@app.cell
+def _(np):
+    np.sin(np.pi)
     return
 
 
@@ -213,6 +225,14 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    g = 9.81 #m/s^2
+    l = 1 #m
+    M = 1 #kg
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -222,6 +242,19 @@ def _(mo):
     Compute the force $(f_x, f_y) \in \mathbb{R}^2$ applied to the booster by the reactor.
     """
     )
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(R):
+    def force(f,theta,phi):
+        fx = f*R(theta+phi)[0][0]
+        fy = f*R(theta+phi)[1][1]
     return
 
 
