@@ -227,7 +227,7 @@ def _(mo):
 
 @app.cell
 def _():
-    g = 9.81 #m/s^2
+    g = 1 #m/s^2
     l = 1 #m
     M = 1 #kg
     return
@@ -246,10 +246,37 @@ def _(mo):
 
 
 @app.cell
+def _(mo):
+    mo.center(mo.image(src="public/images/forces.png"))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    $$
+    \vec{f} = R(\theta + \phi) \cdot \begin{bmatrix} 0 \\ f \end{bmatrix}
+    $$
+    """
+    )
+    return
+
+
+@app.cell
 def _(R, np):
     def force(f,theta,phi):
-        fx,fy = R(theta+phi)*np.array([0,-f])
+        fx,fy =  R(theta+phi) @ np.array([0,f])
         return fx,fy
+    return
+
+
+@app.cell
+def _(R, np):
+    # Methode 2 
+    def force2(f, theta, phi):
+        f_x,f_y = R(theta) @ R(phi) @ np.array([0,f])
+        return (f_x,f_y)
     return
 
 
@@ -262,6 +289,11 @@ def _(mo):
     Give the ordinary differential equation that governs $(x, y)$.
     """
     )
+    return
+
+
+@app.cell
+def _():
     return
 
 
