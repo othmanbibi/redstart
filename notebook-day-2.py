@@ -1825,6 +1825,65 @@ def _(mo):
     return
 
 
+@app.cell
+def _(alpha, g, np, scipy):
+    _A = np.array([[0, 1, 0, 0],
+                  [0, 0, -g, 0],
+                  [0, 0, 0, 1],
+                  [0, 0, 0, 0]])
+
+    _B = np.array([[0],
+                  [-g],
+                  [0],
+                  [-alpha]])
+
+    desired_poles = [-0.3, -0.4, -0.8 + 1.5j, -0.8 - 1.5j]
+
+    K_pp = scipy.signal.place_poles(_A, _B, desired_poles).gain_matrix
+    print("K_pp =", K_pp)
+    return
+
+
+@app.cell
+def _(J, M, g, l, np, plt, scipy):
+    _K = np.array([ 0.1156   ,   0.73833333 ,-1.4152  ,   -1.01277778])  
+
+    def booster_dynamics(t, state):
+        x_pos, dx, theta, dtheta = state
+        phi = -_K @ state
+        ddx = -g * theta - g * phi
+        ddtheta = -(l * M * g / J) * phi
+        return [dx, ddx, dtheta, ddtheta]
+    
+    x0 = [0, 0, np.pi/4, 0]
+
+    t_eval = np.linspace(0, 20, 100)
+
+    sol = scipy.integrate.solve_ivp(booster_dynamics, [0, 20], x0, t_eval=t_eval)
+
+
+    phi_values = np.array([-_K @ sol.y[:, i] for i in range(sol.y.shape[1])])
+
+    plt.figure(figsize=(10, 4))
+    plt.plot(sol.t, np.degrees(sol.y[2]), 'r-', label='$\\theta(t)$')
+    plt.axhline(0, color='k', linestyle='--', label='Target ($\\theta=0$)')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Tilt Angle (°)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    plt.figure(figsize=(10, 4))
+    plt.plot(sol.t, np.degrees(phi_values), 'b-', label='$\\phi(t)$ (control input)')
+    plt.axhline(0, color='k', linestyle='--')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Control Input $\\phi$')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    return (sol,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -1914,19 +1973,59 @@ def _(g, np, scipy):
                   [0],
                   [-alpha]])  
 
-    Q = np.diag([10, 1, 100, 10])
+    Q = np.diag([0, 0, 1, 1])
     R1 = np.array([[1]])
 
     # Résolution de l’équation de Riccati
     P = scipy.linalg.solve_continuous_are(A, B, Q, R1)
 
     K_oc = np.linalg.inv(R1) @ B.T @ P
-    return (K_oc,)
+    return K_oc, alpha
 
 
 @app.cell
 def _(K_oc):
     print(K_oc)
+    return
+
+
+@app.cell
+def _(J, M, g, l, np, plt, scipy, sol):
+    _K = np.array([-4.16208989e-19,  2.62916856e-17, -1.00000000e+00, -1.29099445e+00])  
+
+    def booster_dynamics2(t, state):
+        x_pos, dx, theta, dtheta = state
+        phi = -_K @ state
+        ddx = -g * theta - g * phi
+        ddtheta = -(l * M * g / J) * phi
+        return [dx, ddx, dtheta, ddtheta]
+    
+    x1 = [0, 0, np.pi/4, 0]
+
+    t_eval1 = np.linspace(0, 20, 100)
+
+    sol1 = scipy.integrate.solve_ivp(booster_dynamics2, [0, 20], x1, t_eval=t_eval1)
+
+
+    phi_values1 = np.array([-_K @ sol1.y[:, i] for i in range(sol1.y.shape[1])])
+
+    plt.figure(figsize=(10, 4))
+    plt.plot(sol.t, np.degrees(sol1.y[2]), 'r-', label='$\\theta(t)$')
+    plt.axhline(0, color='k', linestyle='--', label='Target ($\\theta=0$)')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Tilt Angle (°)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    plt.figure(figsize=(10, 4))
+    plt.plot(sol.t, np.degrees(phi_values1), 'b-', label='$\\phi(t)$ (control input)')
+    plt.axhline(0, color='k', linestyle='--')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Control Input $\\phi$')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
     return
 
 
