@@ -1155,7 +1155,7 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    Le système linéaire invariant dans le temps (LTI) est représenté par :
+    Le système est représenté par :
 
     $$
     \dot{\mathbf{x}} = A \mathbf{x} + B \mathbf{u}
@@ -1312,7 +1312,7 @@ def _():
     _g, _M, _l, _J = symbols('g M l J')
 
 
-    A = Matrix([
+    _A = Matrix([
         [0, 1, 0, 0, 0, 0],
         [0, 0, 0, 0, -_g, 0],
         [0, 0, 0, 1, 0, 0],
@@ -1321,7 +1321,7 @@ def _():
         [0, 0, 0, 0, 0, 0]
     ])
 
-    B = Matrix([
+    _B = Matrix([
         [0, 0],
         [0, -_g],
         [0, 0],
@@ -1331,19 +1331,15 @@ def _():
     ])
 
 
-    C = B
+    _C = _B
     for i in range(1, 6):
-        C = C.row_join(A**i * B)
+        _C = _C.row_join(_A**i * _B)
 
 
-    print(f"Rank: {C.rank()}")
+    print(f"Rank: {_C.rank()}")
+    _C
 
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    return
+    return Matrix, symbols
 
 
 app._unparsable_cell(
@@ -1367,6 +1363,106 @@ def _(mo):
     """
     )
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+
+    On ignore $y$ et $\dot{y}$,
+    et on supprime $\Delta \phi$ de l’entrée.
+
+    1. $\Delta \ddot{x} = -g(\Delta \theta + \Delta \phi)$
+    2. $\Delta \ddot{\theta} = -\dfrac{\ell M g}{J} \Delta \phi$
+    Alors, on retrouve :
+
+    $$
+    \Delta x =
+    \begin{bmatrix}
+    \Delta x \\
+    \Delta \dot{x} \\
+    \Delta \theta \\
+    \Delta \dot{\theta}
+    \end{bmatrix}, \quad u = \Delta \phi
+    $$
+
+
+    Le système devient :
+
+    $$
+    \dot{\mathbf{x}} = A \mathbf{x} + B \mathbf{u}
+    $$
+
+    avec :
+
+    $$
+    A = \begin{bmatrix}
+    0 & 1 & 0 & 0 \\
+    0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1\\
+    0 & 0 & 0 & 0
+    \end{bmatrix}, \quad
+    B = \begin{bmatrix}
+    0 \\
+    -g \\
+    0 \\
+    - \dfrac{\ell M g}{J}
+    \end{bmatrix}
+    $$
+
+    **Pour la contrôlabilité**
+
+    De même que dans la question précédente, on calcule le rang de la matrice de contrôlabilité numériquement.
+
+    Il faut trouver que le rang est égal à 4 :
+
+    $$
+    \mathcal{C} = [B, AB, A^2B, A^3B]
+    $$
+
+    pour que le system soit controlable
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(Matrix, symbols):
+
+    _g, _M, _l, _J = symbols('g M l J')
+
+    # Define A and B matrices
+    _A = Matrix([
+        [0, 1, 0, 0],
+        [0, 0, -_g, 0],
+        [0, 0, 0, 1],
+        [0, 0, 0, 0]
+    ])
+    _B = Matrix([
+        [0],
+        [-_g],
+        [0],
+        [-_l*_M*_g/_J]
+    ])
+
+    # Compute controllability matrix: [B, AB, A^2B, A^3B]
+    _C = _B
+    for _i in range(1, 4):
+        _C = _C.row_join(_A**_i * _B)
+
+    # Display rank and controllability matrix
+    print(f"Rank: {_C.rank()}")
+    _C
+    return
+
+
+app._unparsable_cell(
+    r"""
+    Alors le systeme est controlable
+    """,
+    name="_"
+)
 
 
 @app.cell(hide_code=True)
