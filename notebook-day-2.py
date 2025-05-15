@@ -1482,6 +1482,122 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+
+    On considère une chute libre sans poussée, alors la force est nulle :
+
+    $$
+    f(t) = 0, \quad \phi(t) = 0
+    $$
+
+
+
+    Les équations  devient
+
+    $$
+    \begin{aligned}
+    \Delta \ddot{x}(t) &= 0 \\
+    \Delta \ddot{y}(t) &= -g \\
+    \Delta \ddot{\theta}(t) &= 0
+    \end{aligned}
+    $$
+
+
+
+    Conditions Initiales
+
+    On considère le cas suivant :
+
+    $$
+    \begin{aligned}
+    \Delta x(0) &= 0 \\
+    \Delta \dot{x}(0) &= 0 \\
+    \Delta y(0) &= 10 \\
+    \Delta \dot{y}(0) &= 0 \\
+    \Delta \theta(0) &= \frac{\pi}{4} \quad \text{(soit 45°)} \\
+    \Delta \dot{\theta}(0) &= 0
+    \end{aligned}
+    $$
+
+    Solutions Analytiques
+
+    Les équations précédentes ont pour solutions :
+
+    $$
+    \begin{aligned}
+    \Delta x(t) &= 0 \\
+    \Delta y(t) &= -\frac{1}{2} g t^2 + 10 \\
+    \Delta \theta(t) &= \frac{\pi}{4}
+    \end{aligned}
+    $$
+
+
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(np, plt):
+
+
+
+    _g = 1.0                      
+    _theta0 = np.pi / 4          
+    _y0 = 10                   
+    _vy0 = 0                     
+
+
+    _t = np.linspace(0, 5, 1000)  
+
+
+    _y_t = -0.5 * _g * _t**2 + _vy0 * _t + _y0      
+    _theta_t = np.ones_like(_t) * _theta0        
+
+
+    plt.figure(figsize=(12, 4))
+
+
+    plt.subplot(1, 2, 1)
+    plt.plot(_t, _y_t, label=r"$y(t)$", color="blue")
+    plt.xlabel("Temps $t$ (s)")
+    plt.ylabel("Hauteur $y$ (m)")
+    plt.title("Hauteur en chute libre")
+    plt.grid(True)
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(_t, _theta_t, label=r"$\theta(t)$", color="orange")
+    plt.xlabel("Temps $t$ (s)")
+    plt.ylabel("Inclinaison $\\theta$ (rad)")
+    plt.title("Inclinaison constante")
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    En chute libre :
+
+    Pas d’accélération horizontale, donc la position latérale ne bouge pas.
+
+    La gravité fait tomber le booster, sa hauteur diminue en suivant une parabole.
+
+    L’angle d’inclinaison reste fixe, car rien ne le fait tourner.
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Manually Tuned Controller
 
     Try to find the two missing coefficients of the matrix 
