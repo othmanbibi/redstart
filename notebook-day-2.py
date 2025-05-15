@@ -1774,6 +1774,61 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    $$
+    K_{pp} = \begin{bmatrix}
+    k_1 & k_2 & k_3 & k_4
+    \end{bmatrix}
+    $$
+
+    telle que le système en boucle fermée :
+
+    $$
+    \dot{\mathbf{x}} = (A - BK_{pp})\mathbf{x}
+    $$
+
+    ait des valeurs propres (pôles) placées à des positions désirées dans le plan complexe, reflétant nos objectifs de performance.
+
+
+
+    Nous voulons un amortissement modéré et un temps de stabilisation ≤ 20s
+
+
+    $$
+    T_s \approx \frac{4}{|\text{Re}(\lambda)|}
+    $$
+
+
+    $$
+    \frac{4}{|\text{Re}(\lambda)|} \leq 20 \quad \Rightarrow \quad |\text{Re}(\lambda)| \geq 0.2
+    $$
+
+    Choisissons :
+
+
+
+    * 2 pôles réels dominants : $-0{,}3$, $-0{,}4$ (temps de stabilisation \~ $\frac{4}{0{,}3} \approx 13{,}3$ s)
+    * 1 paire complexe conjuguée faiblement amortie : $-0{,}8 \pm 1{,}5i$ → décroissance plus rapide, possibilité d’oscillations
+
+    Pôles choisis :
+
+    $$
+    \lambda = \{-0{,}3,\ -0{,}4,\ -0{,}8 + 1{,}5i,\ -0{,}8 - 1{,}5i\}
+    $$
+
+    Ces pôles assurent :
+
+    * Partie réelle négative → stabilité asymptotique
+    * Temps de stabilisation < 20 s
+    * Convergence fluide
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Controller Tuned with Optimal Control
 
     Using optimal, find a gain matrix $K_{oc}$ that satisfies the same set of requirements that the one defined using pole placement.
@@ -1781,6 +1836,97 @@ def _(mo):
     Explain how you find the proper design parameters!
     """
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    On veut minimiser la fonction coût quadratique :
+
+    $$
+    J = \int_0^\infty \left( \mathbf{x}^\top Q \mathbf{x} + u^\top R u \right) dt
+    $$
+
+    Sous les contraintes :
+
+    $$
+    \dot{\mathbf{x}} = A \mathbf{x} + B u, \quad u = -K_{oc} \mathbf{x}
+    $$
+
+    On attribue une pénalité plus élevée à la déviation angulaire et à la vitesse angulaire, et une pondération plus faible (ou nulle) à la position du chariot.
+
+    On commence avec :
+
+    $$
+    Q = \text{diag}(q_1, q_2, q_3, q_4), \quad R = r
+    $$
+
+    Choisissons :
+
+    * $q_1 = 10$ : pénaliser l’écart de position,
+    * $q_2 = 1$ : poids modéré sur la vitesse,
+    * $q_3 = 100$ : forte pénalisation de l’écart angulaire (critique pour la stabilité),
+    * $q_4 = 10$ : pénaliser la vitesse angulaire,
+    * $R = 1$ : poids standard sur la commande.
+
+    $$
+    Q = \begin{bmatrix}
+    10 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 \\
+    0 & 0 & 100 & 0 \\
+    0 & 0 & 0 & 10
+    \end{bmatrix}, \quad
+    R = [1]
+    $$
+
+
+
+    On utilise l’algorithme LQR  :
+
+    $$
+    K_{oc} = R^{-1} B^\top P
+    $$
+
+    Avec $P$ solution de l’équation de Riccati algébrique continue (CARE) :
+
+    $$
+    A^\top P + P A - P B R^{-1} B^\top P + Q = 0
+    $$
+    """
+    )
+    return
+
+
+@app.cell
+def _(g, np, scipy):
+    alpha = 3  # valeur de ell*M*g / J
+
+
+    A = np.array([[0, 1, 0, 0],
+                  [0, 0, -g, 0],
+                  [0, 0, 0, 1],
+                  [0, 0, 0, 0]])
+
+    B = np.array([[0],
+                  [-g],
+                  [0],
+                  [-alpha]])  
+
+    Q = np.diag([10, 1, 100, 10])
+    R1 = np.array([[1]])
+
+    # Résolution de l’équation de Riccati
+    P = scipy.linalg.solve_continuous_are(A, B, Q, R1)
+
+    K_oc = np.linalg.inv(R1) @ B.T @ P
+    return (K_oc,)
+
+
+@app.cell
+def _(K_oc):
+    print(K_oc)
     return
 
 
