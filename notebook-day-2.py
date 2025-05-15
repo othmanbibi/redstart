@@ -1881,7 +1881,7 @@ def _(J, M, g, l, np, plt, scipy):
     plt.legend()
     plt.grid(True)
     plt.show()
-    return (sol,)
+    return sol, t_eval, x0
 
 
 @app.cell(hide_code=True)
@@ -2038,6 +2038,78 @@ def _(mo):
     Test the two control strategies (pole placement and optimal control) on the "true" (nonlinear) model and check that they achieve their goal. Otherwise, go back to the drawing board and tweak the design parameters until they do!
     """
     )
+    return
+
+
+@app.cell
+def _(J, M, g, l, np, plt, scipy, t_eval, x0):
+
+    K_gains = np.array([0, 0, -1/12, -4/15]) 
+
+
+
+    def linearized_booster_dynamics(t, state):
+        x_pos, dx, theta, dtheta = state
+        phi_control = -(K_gains[2] * theta + K_gains[3] * dtheta)
+
+        ddx = -g * theta - g * phi_control
+        ddtheta = -(l * M * g / J) * phi_control
+        return [dx, ddx, dtheta, ddtheta]
+
+
+    def nonlinear_booster_dynamics(t, state):
+        x_pos, dx, theta, dtheta = state
+
+        phi_control = -(K_gains[2] * theta + K_gains[3] * dtheta)
+
+        f_over_M = g 
+        ddx = -f_over_M * np.sin(theta + phi_control)
+        ddtheta = -(l * f_over_M / (J/M)) * np.sin(phi_control) 
+        ddtheta_nonlinear = -(l * M * g / J) * np.sin(phi_control)
+
+        return [dx, ddx, dtheta, ddtheta_nonlinear]
+
+
+    x2 = [0, 0, np.pi/4, 0] 
+    t_start = 0
+    t_end = 20
+    t_eval2 = np.linspace(t_start, t_end, 500) 
+
+    sol_linear = scipy.integrate.solve_ivp(linearized_booster_dynamics, [t_start, t_end], x0, t_eval=t_eval, dense_output=True)
+
+    sol_nonlinear = scipy.integrate.solve_ivp(nonlinear_booster_dynamics, [t_start, t_end], x2, t_eval=t_eval, dense_output=True)
+
+    phi_linear_values = np.array([-(K_gains[2] * sol_linear.y[2, i] + K_gains[3] * sol_linear.y[3, i]) for i in range(sol_linear.y.shape[1])])
+    phi_nonlinear_values = np.array([-(K_gains[2] * sol_nonlinear.y[2, i] + K_gains[3] * sol_nonlinear.y[3, i]) for i in range(sol_nonlinear.y.shape[1])])
+
+    plt.figure(figsize=(12, 10))
+
+    plt.subplot(3, 1, 1)
+    plt.plot(sol_linear.t, sol_linear.y[2], label='Theta (Linearized)')
+    plt.plot(sol_nonlinear.t, sol_nonlinear.y[2], label='Theta (Non-Linearized)', linestyle='--')
+    plt.title('Comparison of Linearized and Non-Linearized Booster Dynamics')
+    plt.ylabel('Theta (radians)')
+    plt.grid(True)
+    plt.legend()
+
+    plt.subplot(3, 1, 2)
+    plt.plot(sol_linear.t, sol_linear.y[0], label='x_pos (Linearized)')
+    plt.plot(sol_nonlinear.t, sol_nonlinear.y[0], label='x_pos (Non-Linearized)', linestyle='--')
+    plt.ylabel('x_pos (m)')
+    plt.grid(True)
+    plt.legend()
+
+    plt.subplot(3, 1, 3)
+    plt.plot(sol_linear.t, phi_linear_values, label='Phi_control (Linearized System)')
+    plt.plot(sol_nonlinear.t, phi_nonlinear_values, label='Phi_control (Non-Linearized System)', linestyle='--')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Phi_control (radians)')
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
     return
 
 
