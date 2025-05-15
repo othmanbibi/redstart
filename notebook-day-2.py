@@ -1010,6 +1010,215 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    On définit le statut de l'équilibre par le point : $(x_e, y_e, \theta_e)$ et les entrées qu'on doit avoir pour atteindre l'équilibre $(f_e, \phi_e)$
+
+    On définit les erreurs par rapport à l'équilibre : 
+
+    $$
+    \begin{aligned}
+    \Delta x &= x - x_e \\
+    \Delta y &= y - y_e \\
+    \Delta \theta &= \theta - \theta_e \\
+    \Delta f &= f - f_e \\
+    \Delta \phi &= \phi - \phi_e
+    \end{aligned}
+    $$
+
+    Nos équations différentielles : 
+
+    1. $M \ddot{x} = -f \sin (\theta + \phi)$
+    2. $M \ddot{y} = f \cos(\theta + \phi) - Mg$
+    3. $J \ddot{\theta} = - \ell (\sin \phi) f$
+
+
+
+    1- On linearise la première équation : 
+
+    $$
+    M \ddot{x} = -(f_e + \Delta f) \sin (\theta_e + \Delta \theta + \phi_e + \Delta \phi)
+    $$
+
+    On utilise la propriété $\sin(a+b)=\sin(a)\cos(b) + \sin(b)\cos(b)$ 
+
+    et l'approximation $\sin(a)\approx a$ et $\cos(a)\approx 1$ si a est proche de 0
+
+    Alors : 
+
+    $$
+    \begin{aligned}
+    \sin(\theta_e + \Delta \theta + \phi_e + \Delta \phi) 
+    &= \sin(\theta_e + \phi_e) \cos(\Delta \theta + \Delta \phi) + \cos(\theta_e + \phi_e) \sin(\Delta \theta + \Delta \phi) \\
+    &\approx \sin(\theta_e + \phi_e) + \cos(\theta_e + \phi_e)(\Delta \theta + \Delta \phi)
+    \end{aligned}
+    $$
+
+    Alors : 
+
+    $$
+    \begin{aligned}
+    M \ddot{x} &\approx -(f_e + \Delta f)\left[\sin(\theta_e + \phi_e) + \cos(\theta_e + \phi_e)(\Delta \theta + \Delta \phi)\right] \\
+    M \Delta \ddot{x} &\approx -f_e \cos(\theta_e + \phi_e)(\Delta \theta + \Delta \phi) - \sin(\theta_e + \phi_e) \Delta f
+    \end{aligned}
+    $$
+
+    (On utilise : $M \ddot{x}_e = -f_e \sin(\theta_e + \phi_e) = 0$)
+
+    ---
+    2- On linearise la deuxième équation : 
+
+    $$
+    M \ddot{y} = (f_e + \Delta f) \cos(\theta_e + \Delta \theta + \phi_e + \Delta \phi) - Mg
+    $$
+
+    De même façon : 
+
+    $$
+    \begin{aligned}
+    \cos(\theta_e + \Delta \theta + \phi_e + \Delta \phi) 
+    &= \cos(\theta_e + \phi_e)\cos(\Delta \theta + \Delta \phi) - \sin(\theta_e + \phi_e)\sin(\Delta \theta + \Delta \phi) \\
+    &\approx \cos(\theta_e + \phi_e) - \sin(\theta_e + \phi_e)(\Delta \theta + \Delta \phi)
+    \end{aligned}
+    $$
+
+    Alors : 
+
+    $$
+    \begin{aligned}
+    M \ddot{y} &\approx (f_e + \Delta f)\left[\cos(\theta_e + \phi_e) - \sin(\theta_e + \phi_e)(\Delta \theta + \Delta \phi)\right] - Mg \\
+    M \Delta \ddot{y} &\approx -f_e \sin(\theta_e + \phi_e)(\Delta \theta + \Delta \phi) + \cos(\theta_e + \phi_e)\Delta f
+    \end{aligned}
+    $$
+
+    (On utilise : $M \ddot{y}_e = f_e \cos(\theta_e + \phi_e) - Mg = 0$)
+
+    ---
+
+    3 -Pour la troisième équation : 
+
+    $$
+    J \ddot{\theta} = -\ell (f_e + \Delta f) \sin(\phi_e + \Delta \phi)
+    $$
+
+    Avec : 
+
+    $$
+    \sin(\phi_e + \Delta \phi) \approx \sin \phi_e + \cos \phi_e \Delta \phi
+    $$
+
+    Alors : 
+
+    $$
+    \begin{aligned}
+    J \ddot{\theta} &\approx -\ell (f_e + \Delta f)(\sin \phi_e + \cos \phi_e \Delta \phi) \\
+    J \Delta \ddot{\theta} &\approx -\ell f_e \cos \phi_e \Delta \phi - \ell \sin \phi_e \Delta f
+    \end{aligned}
+    $$
+
+    (On utilise : $J \ddot{\theta}_e = -\ell f_e \sin \phi_e = 0$)
+
+    ---
+
+    Conclusion : 
+
+    Avec  : 
+
+    * $\theta_e = 0$
+    * $\phi_e = 0$
+    * $f = Mg$
+
+    $$
+    \begin{aligned}
+    \Delta \ddot{x} &= - g  (\Delta \theta +  \Delta \phi)  \\
+    \Delta \ddot{y} &=  \frac{1}{M} \Delta f \\
+    \Delta \ddot{\theta} &= - \frac{\ell Mg}{J} \Delta \phi 
+    \end{aligned}
+    $$
+
+    """
+    )
+    return
+
+
+app._unparsable_cell(
+    r"""
+    # 🧩 Linearized Model
+
+    ## 1. Define the Equilibrium Point
+
+    We assume the system is at equilibrium when:
+    - \( \theta = 0 \)
+    - \( \varphi = 0 \)
+    - \( f = Mg \)
+
+    ---
+
+    ## 2. Introduce Error Variables
+
+    Define deviations from equilibrium as:
+
+    - \( \Delta x = x - x_{eq} \)
+    - \( \Delta y = y - y_{eq} \)
+    - \( \Delta \theta = \theta - \theta_{eq} = \theta \)
+    - \( \Delta \varphi = \varphi - \varphi_{eq} = \varphi \)
+    - \( \Delta f = f - f_{eq} = f - Mg \)
+
+    These variables represent small perturbations near the equilibrium.
+
+    ---
+
+    ## 3. Start from Nonlinear Equations of Motion
+
+    Examples of nonlinear dynamics (before linearization):
+
+    - Translational motion:
+      \[
+      M \ddot{x} = \text{forces along } x
+      \]
+      \[
+      M \ddot{y} = f - Mg
+      \]
+
+    - Rotational motion:
+      \[
+      J \ddot{\theta} = \text{torques about rotation axis}
+      \]
+
+    ---
+
+    ## 4. Linearization Assumptions
+
+    Assume:
+    - Small angles: \( \sin(\theta) \approx \theta \), \( \cos(\theta) \approx 1 \)
+    - Neglect higher-order terms: \( \theta \cdot \varphi \approx 0 \)
+
+    ---
+
+    ## 5. Linearized Ordinary Differential Equations (ODEs)
+
+    From linearization, the equations become:
+
+    1. \( M \Delta\ddot{x} \approx -Mg \Delta\theta - Mg \Delta\varphi \)
+    2. \( M \Delta\ddot{y} \approx \Delta f \)
+    3. \( J \Delta\ddot{\theta} \approx -\ell Mg \Delta\varphi \)
+
+    ---
+
+    ## ✅ Summary
+
+    These linearized equations approximate the system's behavior near the equilibrium point. They are crucial for:
+    - Simplified analysis
+    - Control system design (e.g., PID, LQR)
+    - Stability studies
+
+    """,
+    column=None, disabled=False, hide_code=True, name="_"
+)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Standard Form
 
     What are the matrices $A$ and $B$ associated to this linear model in standard form?
