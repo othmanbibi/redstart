@@ -1156,6 +1156,76 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    Le système linéaire invariant dans le temps (LTI) est représenté par :
+
+    $$
+    \dot{\mathbf{x}} = A \mathbf{x} + B \mathbf{u}
+    $$
+
+    où :
+
+    - $\mathbf{x}$ : Vecteur d'état  
+    - $\mathbf{u}$ : Vecteur d'entrée  
+    - $A$ : Matrice d'état  
+    - $B$ : Matrice d'entrée
+
+    $$
+    x
+    = 
+    \begin{bmatrix}
+    \Delta x \\
+    \Delta \dot{x} \\
+    \Delta y \\
+    \Delta \dot{y} \\
+    \Delta \theta \\
+    \Delta \dot{\theta}
+    \end{bmatrix}
+    $$
+
+    $$
+    u
+    = 
+    \begin{bmatrix}
+    \Delta f \\
+    \Delta \phi 
+    \end{bmatrix}
+    $$
+
+
+    Alors : 
+
+    $$
+    A = \begin{bmatrix}
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0 & 0 & 0
+    \end{bmatrix}
+    $$
+
+    et : 
+
+    $$
+    B = \begin{bmatrix}
+    0 & 0 \\
+    0 & -g \\
+    0 & 0 \\
+    \frac{1}{M} & 0 \\
+    0 & 0 \\
+    0 & -\frac{lMg}{J}\\
+    \end{bmatrix}
+    $$
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Stability
 
     Is the generic equilibrium asymptotically stable?
