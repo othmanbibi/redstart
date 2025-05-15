@@ -1633,6 +1633,105 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    On veut trouver K tele que :
+
+    $$
+    u(t) = \Delta \phi(t) = -K \mathbf{x}(t)
+    \quad \text{with} \quad
+    K = \begin{bmatrix}
+    0 & 0 & k_3 & k_4
+    \end{bmatrix}
+    $$
+
+
+    On écrit :
+
+    $$
+    u(t) = -k_3 \Delta \theta - k_4 \Delta \dot{\theta}
+    $$
+
+
+
+    On a d'après 'Linearized Model' :
+
+    $$
+    \Delta \ddot{\theta} = -\frac{\ell M g}{J} \Delta \phi = -\alpha \Delta \phi
+    $$
+
+    On remplace cette formule dans l'équation :
+
+    $$
+    \Delta \phi = -k_3 \Delta \theta - k_4 \Delta \dot{\theta}
+    \Rightarrow
+    \Delta \ddot{\theta} = \alpha (k_3 \Delta \theta + k_4 \Delta \dot{\theta})
+    $$
+
+    Ce qui donne :
+
+    $$
+    \Delta \ddot{\theta} - \alpha k_4 \Delta \dot{\theta} - \alpha k_3 \Delta \theta = 0
+    $$
+
+    C'est une **Equation de deuxième degrée** de la forme :
+
+    $$
+    \Delta \ddot{\theta} + 2\xi \omega_n \Delta  \dot{\theta} + \omega_n^2 \Delta \theta = 0
+    $$
+
+    Avec :
+
+    * $2\xi \omega_n = -\alpha k_4$
+    * $\omega_n^2 = -\alpha k_3$
+
+
+    On veut :
+
+    * $\Delta \theta(t) \to 0$ in < 20s
+    * $|\Delta \theta(t)| < \pi/2$
+    * $|\Delta \phi(t)| < \pi/2$
+
+
+    Et notre condition initiale est :
+
+    $$
+    \Delta \theta(0) = \frac{45}{180}\pi = \frac{\pi}{4} \approx 0.785 \text{ rad}
+    $$
+
+
+
+    Nous voulons :
+
+    * Une décroissance suffisamment rapide (en moins de 20 s) → peut-être $\omega_n \approx 0{,}5$ rad/s (→ temps de montée ≈ 4s)
+
+    * Un amortissement critique ou légèrement sous-amorti : $\xi \approx 0{,}8$
+
+
+
+    On peut choisir:
+
+    * $\omega_n = 0.5 \Rightarrow \omega_n^2 = 0.25$
+    * $\xi = 0.8 \Rightarrow 2\xi\omega_n = 0.8$
+
+    Alors :
+
+    * $\alpha k_3 = -0.25 \Rightarrow k_3 = -0.25 / \alpha$
+    * $\alpha k_4 = -0.8 \Rightarrow k_4 = -0.8 / \alpha$
+
+    Pour $\alpha = 3$:
+
+    $$
+    k_3 = -1/12,\quad k_4 = -4/15
+    $$
+
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Controller Tuned with Pole Assignment
 
     Using pole assignement, find a matrix
