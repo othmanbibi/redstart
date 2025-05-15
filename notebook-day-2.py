@@ -963,6 +963,40 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    L'équilibre corresepond aux équations : 
+
+    1- $\dot{x} = 0$
+
+    2-$\ddot{x} = (-f/M)sin(\theta + \phi) = 0$
+
+    3-$\dot{y} = 0$
+
+    4-$\ddot{y} = (f/M)cos(\theta + \phi) - g = 0$
+
+    5-$\dot{\theta} = 0$
+
+    6-$\ddot{\theta} = (-l*f/J)sin(\phi) = 0$
+
+    D'après 6 on a: $\phi = 0 \mod 2\pi$, Or puisque $|\phi| < \pi/2$ alors $\phi=0$
+
+    D'après 2 et $\phi=0$ on a: $\theta = 0 \mod 2\pi$, Or puisque $|\theta| < \pi/2$ alors $\theta=0$
+
+    Finalement, d'après 4 et $\phi=\theta=0$, on a : $f = Mg$ 
+
+    Conclusion : 
+
+    * $\theta = 0$
+    * $\phi = 0$
+    * $f = Mg$
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Linearized Model
 
     Introduce the error variables $\Delta x$, $\Delta y$, $\Delta \theta$, and $\Delta f$ and $\Delta \phi$ of the state and input values with respect to the generic equilibrium configuration.
