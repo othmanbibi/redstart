@@ -1133,7 +1133,6 @@ def _(mo):
     \Delta \ddot{\theta} &= - \frac{\ell Mg}{J} \Delta \phi 
     \end{aligned}
     $$
-
     """
     )
     return
@@ -1229,6 +1228,34 @@ def _(mo):
     ## 🧩 Stability
 
     Is the generic equilibrium asymptotically stable?
+    """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    Étant donné la matrice :
+
+    \[
+    A = 
+    \begin{bmatrix}
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & -g & 0 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0 & 0 & 0 
+    \end{bmatrix}
+    \]
+
+    ### Analyse de stabilité
+
+    - La matrice \( A \) possède au moins une valeur propre nulle (\( \lambda = 0 \))  ` dont la partie réelle n'est pas strictement négative`
+    - Par conséquent, le système linéaire \( \dot{x} = A x \) **n'est pas asymptotiquement stable**.
+
     """
     )
     return
