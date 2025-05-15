@@ -1255,7 +1255,6 @@ def _(mo):
 
     - La matrice \( A \) possède au moins une valeur propre nulle (\( \lambda = 0 \))  ` dont la partie réelle n'est pas strictement négative`
     - Par conséquent, le système linéaire \( \dot{x} = A x \) **n'est pas asymptotiquement stable**.
-
     """
     )
     return
@@ -1273,11 +1272,10 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
-
     on a 
 
     $$
@@ -1342,12 +1340,10 @@ def _():
     return Matrix, symbols
 
 
-app._unparsable_cell(
-    r"""
-    Alors le système est contrôlable
-    """,
-    column=None, disabled=False, hide_code=True, name="_"
-)
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""Alors le système est contrôlable""")
+    return
 
 
 @app.cell(hide_code=True)
@@ -1369,7 +1365,6 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-
     On ignore $y$ et $\dot{y}$,
     et on supprime $\Delta \phi$ de l’entrée.
 
@@ -1457,12 +1452,10 @@ def _(Matrix, symbols):
     return
 
 
-app._unparsable_cell(
-    r"""
-    Alors le systeme est controlable
-    """,
-    name="_"
-)
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""Alors le systeme est controlable""")
+    return
 
 
 @app.cell(hide_code=True)
@@ -1482,7 +1475,6 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-
     On considère une chute libre sans poussée, alors la force est nulle :
 
     $$
@@ -1529,8 +1521,6 @@ def _(mo):
     \Delta \theta(t) &= \frac{\pi}{4}
     \end{aligned}
     $$
-
-
     """
     )
     return
