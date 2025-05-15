@@ -2113,5 +2113,11 @@ def _(J, M, g, l, np, plt, scipy, t_eval, x0):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""On a trouvé la meilleur K""")
+    return
+
+
 if __name__ == "__main__":
     app.run()
