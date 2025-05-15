@@ -1273,6 +1273,88 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+
+    on a 
+
+    $$
+    x = 
+    \begin{bmatrix}
+    \Delta x \\
+    \Delta \dot{x} \\
+    \Delta y \\
+    \Delta \dot{y} \\
+    \Delta \theta \\
+    \Delta \dot{\theta}
+    \end{bmatrix}
+    \Rightarrow n = 6
+    $$
+
+
+    Le système est contrôlable si le rang de la matrice de contrôlabilité est égal à 6 :
+
+    $$\mathcal{C} = \begin{bmatrix} B & AB & A^2B & A^3B & A^4B & A^5B \end{bmatrix}$$
+
+    On le calcule numériquement par le code suivant :
+    """
+    )
+    return
+
+
+@app.cell
+def _():
+    from sympy import Matrix, symbols
+
+
+    _g, _M, _l, _J = symbols('g M l J')
+
+
+    A = Matrix([
+        [0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, -_g, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0]
+    ])
+
+    B = Matrix([
+        [0, 0],
+        [0, -_g],
+        [0, 0],
+        [1/_M, 0],
+        [0, 0],
+        [0, -_l*_M*_g/_J]
+    ])
+
+
+    C = B
+    for i in range(1, 6):
+        C = C.row_join(A**i * B)
+
+    # Check rank
+
+    print(f"Rank: {C.rank()}")
+
+    return
+
+
+@app.cell(hide_code=True)
+def _():
+    return
+
+
+app._unparsable_cell(
+    r"""
+    Alors le système est contrôlable
+    """,
+    column=None, disabled=False, hide_code=True, name="_"
+)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
