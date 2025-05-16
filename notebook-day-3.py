@@ -1682,6 +1682,19 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+
+    - Si le booster est incliné vers la gauche (\(\theta > 0\)) :
+      - \( h_x = x - \frac{1}{3} \sin \theta \) (se déplace vers la gauche par rapport au centre de masse).
+      - \( h_y = y + \frac{1}{3} \cos \theta \) (se déplace légèrement vers le haut ou le bas selon \(\theta\)).
+    """
+    )
+    return
+
+
 @app.cell
 def _(mo):
     mo.image(src="public/images/1.png")
@@ -1695,6 +1708,93 @@ def _(mo):
     ## 🧩 First and Second-Order Derivatives
 
     Compute $\dot{h}$ as a function of $\dot{x}$, $\dot{y}$, $\theta$ and $\dot{\theta}$ (and constants) and then $\ddot{h}$ as a function of $\theta$ and $z$ (and constants) when the auxiliary system is plugged in the booster.
+    """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(
+        r"""
+    On a :
+
+    $$
+    h = \begin{bmatrix}
+    x - \frac{\ell}{3} \sin \theta \\
+    y + \frac{\ell}{3} \cos \theta
+    \end{bmatrix}.
+    $$
+
+
+    Alors 
+
+    $$
+    \dot{h} = \begin{bmatrix}
+    \dot{x} - \frac{\ell}{3} \dot{\theta} \cos \theta \\
+    \dot{y} - \frac{\ell}{3} \dot{\theta} \sin \theta
+    \end{bmatrix}.
+    $$
+
+
+    On derive une autre fois
+
+    $$
+    \ddot{h} = \begin{bmatrix}
+    \ddot{x} - \frac{\ell}{3} \left( \ddot{\theta} \cos \theta - \dot{\theta}^2 \sin \theta \right) \\
+    \ddot{y} - \frac{\ell}{3} \left( \ddot{\theta} \sin \theta + \dot{\theta}^2 \cos \theta \right)
+    \end{bmatrix}.
+    $$
+
+
+    on remplace 
+
+    $$
+    \ddot{x} = -\frac{f_x}{M}
+    $$
+
+    $$
+    \ddot{y} = -\frac{f_y}{M} - g
+    $$
+
+    $$
+    \ddot{\theta} = -\frac{3}{M\ell} f \sin\phi
+    $$
+
+
+
+    et d'apres le systeme auxiliere on a 
+
+
+    $$\begin{bmatrix}
+    f_x \\
+    f_y
+    \end{bmatrix} = R\left(\theta + \frac{\pi}{2}\right) 
+    \begin{bmatrix}
+    z + \frac{M\ell \dot{\theta}^2}{3} \\
+    \frac{M\ell v_2}{3z}
+    \end{bmatrix}$$
+
+
+
+
+
+
+    on calcule 
+
+
+    $$
+    \begin{bmatrix}
+    f_x \\
+    f_y
+    \end{bmatrix} = 
+    \begin{bmatrix}
+    -(z + \frac{M\ell \dot{\theta}^2}{3})\sin \theta - \frac{M\ell v_2}{3z}\cos \theta \\
+    (z + \frac{M\ell \dot{\theta}^2}{3})\cos \theta - \frac{M\ell v_2}{3z}\sin \theta
+    \end{bmatrix}
+    $$
+
+
     """
     )
     return
