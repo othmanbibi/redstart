@@ -2148,7 +2148,6 @@ def _(mo):
     \dot{y} = \dot{h}_y + \frac{l}{3} \sin(\theta)\dot{\theta}
     \end{cases}
     $$
-
     """
     )
     return
@@ -2159,16 +2158,16 @@ def _(M, g, l, np):
     def T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y):
         theta = np.arctan2(-d2h_x, d2h_y + g)
         z = M * np.sqrt(d2h_x*2 + (d2h_y + g)*2)
-    
+
 
         dz = M * (np.sin(theta) * d3h_x - np.cos(theta) * d3h_y)
         dtheta = M * (np.cos(theta) * d3h_x + np.sin(theta) * d3h_y) / z
-    
+
         x = h_x + (l/3)*np.sin(theta)
         y = h_y - (l/3)*np.cos(theta)
         dx = dh_x + (l/3)*np.cos(theta)*dtheta
         dy = dh_y + (l/3)*np.sin(theta)*dtheta
-    
+
         return x, dx, y, dy, theta, dtheta, z, dz
     return (T_inv,)
 
@@ -2219,38 +2218,66 @@ def _(mo):
 
 @app.cell
 def _(M, T, T_inv, l, np):
+
+    def cubic_poly_coeffs(p0, v0, pf, vf, tf):
+        """
+        Compute cubic polynomial coefficients for:
+        x(t) = a3*t^3 + a2*t^2 + a1*t + a0
+        with constraints:
+          x(0) = p0
+          x'(0) = v0
+          x(tf) = pf
+          x'(tf) = vf
+        """
+        A = np.array([
+            [tf**3, tf**2],
+            [3*tf**2, 2*tf]
+        ])
+        b = np.array([
+            pf - (v0*tf + p0),
+            vf - v0
+        ])
+    
+        a3, a2 = np.linalg.solve(A, b)
+        a1 = v0
+        a0 = p0
+    
+        return np.array([a3, a2, a1, a0])
+
+
+
+
     def compute(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
                 x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
                 tf):
-
+    
         h0 = T(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
         hf = T(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
     
-        def poly_coeffs(h0, hf, tf):
-            return np.polyfit([0, tf], [h0, hf], deg=3)
-    
-        coeffs_x = poly_coeffs(h0[0], hf[0], tf)
-        coeffs_y = poly_coeffs(h0[1], hf[1], tf)
+        # Fit cubic polynomials for x and y
+        coeffs_x = cubic_poly_coeffs(h0[0], h0[2], hf[0], hf[2], tf)  # pos and velocity
+        coeffs_y = cubic_poly_coeffs(h0[1], h0[3], hf[1], hf[3], tf)
     
         def fun(t):
             h_x = np.polyval(coeffs_x, t)
             h_y = np.polyval(coeffs_y, t)
-            dh_x = np.polyval(np.polyder(coeffs_x, 3), t)
-            dh_y = np.polyval(np.polyder(coeffs_y, 3), t)
+            dh_x = np.polyval(np.polyder(coeffs_x, 1), t)
+            dh_y = np.polyval(np.polyder(coeffs_y, 1), t)
             d2h_x = np.polyval(np.polyder(coeffs_x, 2), t)
             d2h_y = np.polyval(np.polyder(coeffs_y, 2), t)
-            d3h_x = np.polyval(np.polyder(coeffs_x, 1), t)
-            d3h_y = np.polyval(np.polyder(coeffs_y, 1), t)
+            d3h_x = np.polyval(np.polyder(coeffs_x, 3), t)
+            d3h_y = np.polyval(np.polyder(coeffs_y, 3), t)
         
             x, dx, y, dy, theta, dtheta, z, dz = T_inv(
                 h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y)
         
             f = np.sqrt((z - (M*l/3)*dtheta**2)**2 + (M*l/(3*z))**2)
-            phi = np.arctan2(M*l/(3*z), z - (M*l/3)*dtheta**2) - theta
+            phi = -np.arctan(((M*l/(3*z))**2/ ((z - (M*l/3)*dtheta**2)**2))) - theta
         
             return x, dx, y, dy, theta, dtheta, z, dz, f, phi
     
         return fun
+
     return (compute,)
 
 
@@ -2276,7 +2303,9 @@ def _(mo):
 def _(M, compute, g, l, np, plt):
     # Initial and final values
     x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0 = 5.0, 0.0, 20.0, -1.0, -np.pi/8, 0.0, -M*g, 0.0
+
     x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf = 0.0, 0.0, 4/3*l, 0.0, 0.0, 0.0, -M*g, 0.0
+
     tf = 10.0
 
     # Get trajectory function
@@ -2286,7 +2315,7 @@ def _(M, compute, g, l, np, plt):
     )
 
     # Sample and store data
-    T1 = np.linspace(0, tf, 500)
+    T1 = np.linspace(0, tf, 1000)
     data = np.array([trajectory(t) for t in T1])
     x, dx, y, dy, theta, dtheta, z, dz, f, phi = data.T
 
@@ -2333,7 +2362,7 @@ def _(
     def video_sim():
         tf = 10.0
         t_span = [0.0, tf]
-    
+
         x_0, dx_0, y_0, dy_0 = 5.0, 0.0, 20.0, -1.0
         theta_0, dtheta_0 = -np.pi/8, 0.0
         z_0, dz_0 = -M*g, 0.0
