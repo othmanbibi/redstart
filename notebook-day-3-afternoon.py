@@ -1323,7 +1323,7 @@ def _(A_lat, B_lat, make_fun_lat, mo, np, plt, sci):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
@@ -1991,6 +1991,25 @@ def _(mo):
     Implement a function `T` of `x, dx, y, dy, theta, dtheta, z, dz` that returns `h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y`.
     """
     )
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    def T(x, dx, y, dy, theta, dtheta, z, dz):
+        hx = x - (l / 3) * np.sin(theta)
+        hy = y + (l / 3) * np.cos(theta)
+
+        dhx = dx - (l / 3) * np.cos(theta) * dtheta
+        dhy = dy - (l / 3) * np.sin(theta) * dtheta
+
+        d2hx = (1 / M) * np.sin(theta) * z
+        d2hy = (1 / M) * -np.cos(theta) * z - g
+
+        d3hx = (1 / M) * (np.cos(theta) * dtheta * z + np.sin(theta) * dz)
+        d3hy = (1 / M) * (np.sin(theta) * dtheta * z - np.cos(theta) * dz)
+
+        return hx, hy, dhx, dhy, d2hx, d2hy, d3hx, d3hy
     return
 
 
