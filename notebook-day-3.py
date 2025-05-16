@@ -1674,10 +1674,17 @@ def _(mo):
     mo.md(
         r"""
     ## 🧩 Geometrical Interpretation
-
+    ![](public\1.png)
     Provide a geometrical interpretation of $h$ (for example, make a drawing).
     """
     )
+
+    return
+
+
+@app.cell
+def _(mo):
+    mo.image(src="public/images/1.png")
     return
 
 
