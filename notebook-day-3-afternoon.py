@@ -2010,6 +2010,12 @@ def _(M, g, l, np):
         d3hy = (1 / M) * (np.sin(theta) * dtheta * z - np.cos(theta) * dz)
 
         return hx, hy, dhx, dhy, d2hx, d2hy, d3hx, d3hy
+    return (T,)
+
+
+@app.cell
+def _(T):
+    T(10, 0, 10, 0, 0.1, 0, -1, 1)
     return
 
 
@@ -2100,6 +2106,29 @@ def _(mo):
     A \cdot \begin{bmatrix} \dot{z} \\ \dot{\theta} \end{bmatrix} = \begin{bmatrix} \dddot{h}_x \\ \dddot{h}_y \end{bmatrix}
     $$
 
+    On a :
+
+    $$
+    \begin{cases}
+    \dddot{h}_x = \frac{1}{M} \left( \cos(\theta) \dot{\theta} z + \sin(\theta) \dot{z} \right) \\
+    \dddot{h}_y = \frac{1}{M} \left( \sin(\theta) \dot{\theta} z - \cos(\theta) \dot{z} \right)
+    \end{cases}
+    $$
+
+
+    C'est un système linéaire que l’on résout pour extraire $\dot{z}$ :
+
+    $$
+    \dot{z} = M \left( \dddot{h}_x \sin(\theta) - \dddot{h}_y \cos(\theta) \right)
+    $$
+
+
+    et : 
+
+    $$
+    \dot{\theta} = M \cdot \frac{1}{z} \left( \cos(\theta) \cdot \dddot{h}_x + \sin(\theta) \cdot \dddot{h}_y \right)
+    $$
+
     ---
 
     ### 3. **À partir de $h, \dot{h}, \theta, \dot{\theta}$, retrouver $x, \dot{x}, y, \dot{y}$**
@@ -2120,7 +2149,6 @@ def _(mo):
     \end{cases}
     $$
 
-
     """
     )
     return
@@ -2132,12 +2160,9 @@ def _(M, g, l, np):
         theta = np.arctan2(-d2h_x, d2h_y + g)
         z = M * np.sqrt(d2h_x*2 + (d2h_y + g)*2)
     
-        A = np.array([
-            [np.sin(theta)/M, (np.cos(theta)*z)/M],
-            [-np.cos(theta)/M, (np.sin(theta)*z)/M]
-        ])
-        dz_dtheta = np.linalg.solve(A, np.array([d3h_x, d3h_y]))
-        dz, dtheta = dz_dtheta
+
+        dz = M * (np.sin(theta) * d3h_x - np.cos(theta) * d3h_y)
+        dtheta = M * (np.cos(theta) * d3h_x + np.sin(theta) * d3h_y) / z
     
         x = h_x + (l/3)*np.sin(theta)
         y = h_y - (l/3)*np.cos(theta)
@@ -2145,6 +2170,12 @@ def _(M, g, l, np):
         dy = dh_y + (l/3)*np.sin(theta)*dtheta
     
         return x, dx, y, dy, theta, dtheta, z, dz
+    return (T_inv,)
+
+
+@app.cell
+def _(T_inv):
+    T_inv(9.966722194451057, 10.331668055092676, 0.0, 0.0, -0.09983341664682815, -0.0049958347219741794 ,0.09983341664682815,-0.9950041652780258)
     return
 
 
@@ -2186,6 +2217,46 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, T, T_inv, l, np):
+    def compute(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+                x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf,
+                tf):
+
+        h0 = T(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
+        hf = T(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
+    
+        # Create polynomial coefficients for each component
+        def poly_coeffs(h0, hf, tf):
+            return np.polyfit([0, tf], [h0, hf], deg=7)
+    
+        coeffs_x = poly_coeffs(h0[0], hf[0], tf)
+        coeffs_y = poly_coeffs(h0[1], hf[1], tf)
+    
+        def fun(t):
+            # Evaluate polynomials
+            h_x = np.polyval(coeffs_x, t)
+            h_y = np.polyval(coeffs_y, t)
+            dh_x = np.polyval(np.polyder(coeffs_x), t)
+            dh_y = np.polyval(np.polyder(coeffs_y), t)
+            d2h_x = np.polyval(np.polyder(coeffs_x, 2), t)
+            d2h_y = np.polyval(np.polyder(coeffs_y, 2), t)
+            d3h_x = np.polyval(np.polyder(coeffs_x, 3), t)
+            d3h_y = np.polyval(np.polyder(coeffs_y, 3), t)
+        
+            x, dx, y, dy, theta, dtheta, z, dz = T_inv(
+                h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y)
+        
+            # Compute f and phi
+            f = np.sqrt((z - (M*l/3)*dtheta**2)**2 + (M*l/(3*z))**2)
+            phi = np.arctan2(M*l/(3*z), z - (M*l/3)*dtheta**2) - theta
+        
+            return x, dx, y, dy, theta, dtheta, z, dz, f, phi
+    
+        return fun
+    return (compute,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
@@ -2201,6 +2272,205 @@ def _(mo):
     Make the graph of the relevant variables as a function of time, then make a video out of the same result. Comment and iterate if necessary!
     """
     )
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(
+    FFMpegWriter,
+    FuncAnimation,
+    draw_booster,
+    l,
+    mo,
+    np,
+    plt,
+    redstart_solve,
+    tqdm,
+):
+    def video_sim_1():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
+        def f_phi(t, state):
+            return np.array([0.0, 0.0])
+        sol = redstart_solve(t_span, y0, f_phi)
+
+        fig = plt.figure(figsize=(10, 6)) # width, height in inches (1 inch = 2.54 cm)
+        axes = plt.gca()
+        num_frames = 100
+        fps = 30 # 30 frames per second
+        ts = np.linspace(t_span[0], t_span[1], int(np.round(t_span[1] * fps)) + 1)
+        output = "sim_1.mp4"
+
+        def animate(t):    
+            x, dx, y, dy, theta, dtheta = state = sol(t)
+            f, phi = f_phi(t, state)
+            axes.clear()
+            draw_booster(x, y, theta, f, phi, axes=axes)
+            axes.set_xticks([0.0])
+            axes.set_xlim(-4*l, +4*l)
+            axes.set_ylim(-2*l, +12*l)
+            axes.set_aspect("equal")
+            axes.set_xlabel(rf"$t={t:.1f}$")
+            axes.set_axisbelow(True)
+            axes.grid(True)
+
+            pbar.update(1)
+
+        pbar = tqdm(total=len(ts), desc="Generating video")
+        anim = FuncAnimation(fig, animate, frames=ts)
+        writer = FFMpegWriter(fps=fps)
+        anim.save(output, writer=writer)
+
+        print()
+        print(f"Animation saved as {output!r}")
+        return output
+
+    mo.video(src=video_sim_1())
+    return
+
+
+@app.cell
+def _(M, compute, g, l, np, plt):
+
+    # Initial and final conditions from your code
+    x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0 = 5.0, 0.0, 20.0, -1.0, -np.pi/8, 0.0, -M*g, 0.0
+    x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf = 0.0, 0.0, 4/3*l, 0.0, 0.0, 0.0, -M*g, 0.0
+    tf = 10.0
+
+    trajectory = compute(
+        x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+        x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf, tf
+    )
+
+    # Debugging approach 1: Check what trajectory returns for specific time points
+    def debug_trajectory_function(trajectory, tf):
+        # Test trajectory at a few points
+        test_times = [0, tf/4, tf/2, 3*tf/4, tf]
+        print("Testing trajectory at specific times:")
+        for t in test_times:
+            result = trajectory(t)
+            print(f"t={t}: type={type(result)}, shape/length={np.shape(result) if hasattr(result, 'shape') else len(result) if hasattr(result, 'len') else 'unknown'}")
+            print(f"   value={result}")
+    
+        # Try to find where it fails
+        print("\nTrying to identify where the error occurs:")
+        T1 = np.linspace(0, tf, 10)  # Just try 10 points first
+        for i, t in enumerate(T1):
+            try:
+                result = trajectory(t)
+                print(f"t={t:.2f}: Success, result shape={np.shape(result) if hasattr(result, 'shape') else len(result) if hasattr(result, 'len') else 'unknown'}")
+            except Exception as e:
+                print(f"t={t:.2f}: Failed with error: {e}")
+                break
+
+    # Debugging approach 2: Modified plotting code with error handling
+    def safe_plot_trajectory(trajectory, tf):
+        T1 = np.linspace(0, tf, 500)
+    
+        # Collect data safely
+        data_list = []
+        for t in T1:
+            try:
+                result = trajectory(t)
+                # Check if result has expected shape/form
+                if result is None or len(result) != 11:  # expecting 11 values based on unpacking in original code
+                    print(f"Warning: Unexpected result at t={t}: {result}")
+                    continue
+                data_list.append(result)
+            except Exception as e:
+                print(f"Error at t={t}: {e}")
+                continue
+    
+        if not data_list:
+            print("No valid data points collected!")
+            return
+    
+        # Convert list to array
+        try:
+            data = np.array(data_list)
+            print(f"Successfully created array with shape {data.shape}")
+        except ValueError as e:
+            print(f"Failed to create array: {e}")
+        
+            # Try to find inconsistent shapes
+            shapes = [np.shape(d) for d in data_list]
+            unique_shapes = set(shapes)
+            if len(unique_shapes) > 1:
+                print(f"Found inconsistent shapes in data: {unique_shapes}")
+        
+            # Fall back to processing each trajectory component separately
+            print("Trying alternative approach...")
+            x, dx, y, dy, theta, dtheta, z, dz, fx, fy, phi = [], [], [], [], [], [], [], [], [], [], []
+            valid_times = []
+        
+            for i, t in enumerate(T1):
+                try:
+                    result = trajectory(t)
+                    if len(result) == 11:
+                        valid_times.append(t)
+                        x.append(result[0])
+                        dx.append(result[1])
+                        y.append(result[2])
+                        dy.append(result[3])
+                        theta.append(result[4])
+                        dtheta.append(result[5])
+                        z.append(result[6])
+                        dz.append(result[7])
+                        fx.append(result[8])
+                        fy.append(result[9])
+                        phi.append(result[10])
+                except:
+                    continue
+        
+            # Now plot with the data we could collect
+            T1 = np.array(valid_times)
+            plot_trajectory_data(T1, x, dx, y, dy, theta, dtheta, z, dz, fx, fy, phi)
+            return
+    
+        # If we got here, we have valid data array
+        x, dx, y, dy, theta, dtheta, z, dz, fx, fy, phi = data.T
+        plot_trajectory_data(T1, x, dx, y, dy, theta, dtheta, z, dz, fx, fy, phi)
+
+    def plot_trajectory_data(T1, x, dx, y, dy, theta, dtheta, z, dz, fx, fy, phi):
+        fig, axs = plt.subplots(4, 1, figsize=(10, 12), sharex=True)
+    
+        axs[0].plot(T1, x, label="x")
+        axs[0].plot(T1, y, label="y")
+        axs[0].set_ylabel("Position")
+        axs[0].legend()
+    
+        axs[1].plot(T1, theta, label="theta")
+        axs[1].set_ylabel("Orientation")
+        axs[1].legend()
+    
+        axs[2].plot(T1, z, label="z")
+        axs[2].set_ylabel("Auxiliary z")
+        axs[2].legend()
+    
+        axs[3].plot(T1, fx, label="f_x")
+        axs[3].plot(T1, fy, label="f_y")
+        axs[3].plot(T1, phi, label="phi")
+        axs[3].set_ylabel("Force / Angle")
+        axs[3].set_xlabel("Time (s)")
+        axs[3].legend()
+    
+        plt.tight_layout()
+        plt.show()
+
+    # To use these functions, you would call:
+    # 1. debug_trajectory_function(trajectory, tf)
+    # 2. safe_plot_trajectory(trajectory, tf)
+    return debug_trajectory_function, tf, trajectory
+
+
+@app.cell
+def _(debug_trajectory_function, tf, trajectory):
+    debug_trajectory_function(trajectory, tf)
     return
 
 
