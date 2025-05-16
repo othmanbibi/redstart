@@ -2032,6 +2032,126 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
+    ---
+
+    ### 1. **À partir de la dérivée seconde de $h$, retrouver $\theta$ et $z$**
+
+    On a dans la fonction directe :
+
+    $$
+    \begin{cases}
+    \ddot{h}_x = \frac{\sin(\theta)}{M} z \\
+    \ddot{h}_y = -\frac{\cos(\theta)}{M} z - g
+    \end{cases}
+    $$
+
+    On peut isoler $\theta$ en utilisant le rapport :
+
+    $$
+    \frac{\ddot{h}_x}{\ddot{h}_y + g} = \frac{\sin(\theta)}{-\cos(\theta)} = -\tan(\theta)
+    $$
+
+    Donc :
+
+    $$
+    \theta = \arctan2(-\ddot{h}_x, \ddot{h}_y + g)
+    $$
+
+    Une fois $\theta$ trouvé, on peut retrouver $z$ par norme :
+
+    $$
+    z = M \sqrt{\ddot{h}_x^2 + (\ddot{h}_y + g)^2}
+    $$
+
+    ---
+
+    ### 2. **À partir de la dérivée troisième de $h$, retrouver $\dot{\theta}$ et $\dot{z}$**
+
+    À l'origine, on a :
+
+    $$
+    \begin{cases}
+    \dddot{h}_x = \frac{\cos(\theta)\dot{\theta}z + \sin(\theta)\dot{z}}{M} \\
+    \dddot{h}_y = \frac{\sin(\theta)\dot{\theta}z - \cos(\theta)\dot{z}}{M}
+    \end{cases}
+    $$
+
+    Ceci est un système linéaire :
+
+    $$
+    \begin{bmatrix}
+    \sin(\theta)/M & \cos(\theta)z/M \\
+    -\cos(\theta)/M & \sin(\theta)z/M
+    \end{bmatrix}
+    \begin{bmatrix}
+    \dot{z} \\
+    \dot{\theta}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    \dddot{h}_x \\
+    \dddot{h}_y
+    \end{bmatrix}
+    $$
+
+    Qu’on peut résoudre analytiquement pour $\dot{z}$ et $\dot{\theta}$, avec :
+
+    $$
+    A \cdot \begin{bmatrix} \dot{z} \\ \dot{\theta} \end{bmatrix} = \begin{bmatrix} \dddot{h}_x \\ \dddot{h}_y \end{bmatrix}
+    $$
+
+    ---
+
+    ### 3. **À partir de $h, \dot{h}, \theta, \dot{\theta}$, retrouver $x, \dot{x}, y, \dot{y}$**
+
+    On a directement les équations inverses des formules dans la fonction directe :
+
+    $$
+    \begin{cases}
+    x = h_x + \frac{l}{3} \sin(\theta) \\
+    y = h_y - \frac{l}{3} \cos(\theta)
+    \end{cases}
+    $$
+
+    $$
+    \begin{cases}
+    \dot{x} = \dot{h}_x + \frac{l}{3} \cos(\theta)\dot{\theta} \\
+    \dot{y} = \dot{h}_y + \frac{l}{3} \sin(\theta)\dot{\theta}
+    \end{cases}
+    $$
+
+
+    """
+    )
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    def T_inv(h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y):
+        theta = np.arctan2(-d2h_x, d2h_y + g)
+        z = M * np.sqrt(d2h_x*2 + (d2h_y + g)*2)
+    
+        A = np.array([
+            [np.sin(theta)/M, (np.cos(theta)*z)/M],
+            [-np.cos(theta)/M, (np.sin(theta)*z)/M]
+        ])
+        dz_dtheta = np.linalg.solve(A, np.array([d3h_x, d3h_y]))
+        dz, dtheta = dz_dtheta
+    
+        x = h_x + (l/3)*np.sin(theta)
+        y = h_y - (l/3)*np.cos(theta)
+        dx = dh_x + (l/3)*np.cos(theta)*dtheta
+        dy = dh_y + (l/3)*np.sin(theta)*dtheta
+    
+        return x, dx, y, dy, theta, dtheta, z, dz
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
     ## 🧩 Admissible Path Computation
 
     Implement a function
