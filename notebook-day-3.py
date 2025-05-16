@@ -1717,17 +1717,48 @@ def _(mo):
 def _(mo):
     mo.md(
         r"""
-    On a :
+
+
+
+
 
     $$
-    h = \begin{bmatrix}
-    x - \frac{\ell}{3} \sin \theta \\
-    y + \frac{\ell}{3} \cos \theta
-    \end{bmatrix}.
+    h_x = x - \frac{\ell}{3} \sin\theta 
+    $$
+
+    $$
+    h_y = y + \frac{\ell}{3} \cos\theta 
+    $$
+
+    Donc :
+
+    $$ 
+    f_x = -\sin\theta \left(z + \frac{M\ell}{3}\dot{\theta}^2\right) - \cos\theta \left(\frac{M\ell v_2}{3z}\right) 
+    $$
+
+    $$ 
+    f_y = \cos\theta \left(z + \frac{M\ell}{3}\dot{\theta}^2\right) - \sin\theta \left(\frac{M\ell v_2}{3z}\right) 
     $$
 
 
-    Alors 
+    on pose
+
+    $$ 
+    \ddot{\theta} = -v_2/z 
+    $$
+
+
+    $$
+    \ddot{x} = f_x/M 
+    $$
+
+    $$ 
+    \ddot{y} = f_y/M - g 
+    $$
+
+
+
+    En dérivant $h_x$ et $h_y$
 
     $$
     \dot{h} = \begin{bmatrix}
@@ -1735,65 +1766,131 @@ def _(mo):
     \dot{y} - \frac{\ell}{3} \dot{\theta} \sin \theta
     \end{bmatrix}.
     $$
-
-
-    On derive une autre fois
-
-    $$
-    \ddot{h} = \begin{bmatrix}
-    \ddot{x} - \frac{\ell}{3} \left( \ddot{\theta} \cos \theta - \dot{\theta}^2 \sin \theta \right) \\
-    \ddot{y} - \frac{\ell}{3} \left( \ddot{\theta} \sin \theta + \dot{\theta}^2 \cos \theta \right)
-    \end{bmatrix}.
-    $$
-
-
-    on remplace 
-
-    $$
-    \ddot{x} = -\frac{f_x}{M}
+ 
+    $$ 
+    \ddot{h}_x = \ddot{x} - \frac{\ell}{3} \ddot{\theta} \cos\theta + \frac{\ell}{3} \dot{\theta}^2 \sin\theta 
     $$
 
     $$
-    \ddot{y} = -\frac{f_y}{M} - g
-    $$
-
-    $$
-    \ddot{\theta} = -\frac{3}{M\ell} f \sin\phi
+    \ddot{h}_y = \ddot{y} - \frac{\ell}{3} \ddot{\theta} \sin\theta - \frac{\ell}{3} \dot{\theta}^2 \cos\theta 
     $$
 
 
 
-    et d'apres le systeme auxiliere on a 
 
+    Remplaçons $\ddot{x}$ par $f_x/M$ et $\ddot{y}$ par $f_y/M - g$ :
 
-    $$\begin{bmatrix}
-    f_x \\
-    f_y
-    \end{bmatrix} = R\left(\theta + \frac{\pi}{2}\right) 
-    \begin{bmatrix}
-    z + \frac{M\ell \dot{\theta}^2}{3} \\
-    \frac{M\ell v_2}{3z}
-    \end{bmatrix}$$
+    $$ 
+    \ddot{h}_x = (f_x/M) - \frac{\ell}{3} \ddot{\theta} \cos\theta + \frac{\ell}{3} \dot{\theta}^2 \sin\theta 
+    $$
 
-
+    $$ 
+    \ddot{h}_y = (f_y/M - g) - \frac{\ell}{3} \ddot{\theta} \sin\theta - \frac{\ell}{3} \dot{\theta}^2 \cos\theta 
+    $$
 
 
 
 
-    on calcule 
+    Calculons $f_x/M$ :
+
+    
+    $$ 
+    f_x/M = \frac{1}{M} \left[ -\sin\theta \left(z + \frac{M\ell}{3}\dot{\theta}^2\right) - \cos\theta \left(\frac{M\ell v_2}{3z}\right) \right] 
+    $$
+
+    $$
+    f_x/M = -\sin\theta \left(\frac{z}{M} + \frac{\ell}{3}\dot{\theta}^2\right) - \cos\theta \left(\frac{\ell v_2}{3z}\right) 
+    $$
+
+    Substituons dans $\ddot{h}_x$ :
+
+    $$ 
+    \ddot{h}_x = \left[ -\sin\theta \left(\frac{z}{M} + \frac{\ell}{3}\dot{\theta}^2\right) - \cos\theta \left(\frac{\ell v_2}{3z}\right) \right] - \frac{\ell}{3} \ddot{\theta} \cos\theta + \frac{\ell}{3} \dot{\theta}^2 \sin\theta
+    $$
+
+    Développons :
+
+    $$ 
+    \ddot{h}_x = -\frac{z}{M}\sin\theta -\frac{\ell}{3}\dot{\theta}^2\sin\theta - \frac{\ell v_2}{3z}\cos\theta - \frac{\ell}{3} \ddot{\theta} \cos\theta + \frac{\ell}{3} \dot{\theta}^2 \sin\theta
+    $$
+
 
 
     $$
-    \begin{bmatrix}
-    f_x \\
-    f_y
-    \end{bmatrix} = 
-    \begin{bmatrix}
-    -(z + \frac{M\ell \dot{\theta}^2}{3})\sin \theta - \frac{M\ell v_2}{3z}\cos \theta \\
-    (z + \frac{M\ell \dot{\theta}^2}{3})\cos \theta - \frac{M\ell v_2}{3z}\sin \theta
-    \end{bmatrix}
+    \ddot{h}_x = -\frac{z}{M}\sin\theta - \frac{\ell v_2}{3z}\cos\theta - \frac{\ell}{3} \ddot{\theta} \cos\theta 
     $$
 
+
+
+    Calculons $f_y/M$ :
+
+    $$ 
+    f_y/M = \frac{1}{M} \left[ \cos\theta \left(z + \frac{M\ell}{3}\dot{\theta}^2\right) - \sin\theta \left(\frac{M\ell v_2}{3z}\right) \right]
+    $$
+
+    $$ 
+    f_y/M = \cos\theta \left(\frac{z}{M} + \frac{\ell}{3}\dot{\theta}^2\right) - \sin\theta \left(\frac{\ell v_2}{3z}\right)
+    $$
+
+    Substituons dans $\ddot{h}_y$ :
+
+
+
+    $$ 
+    \ddot{h}_y = \left[ \cos\theta \left(\frac{z}{M} + \frac{\ell}{3}\dot{\theta}^2\right) - \sin\theta \left(\frac{\ell v_2}{3z}\right) \right] - g - \frac{\ell}{3} \ddot{\theta} \sin\theta - \frac{\ell}{3} \dot{\theta}^2 \cos\theta 
+    $$
+
+    Développons :
+
+
+    $$ 
+    \ddot{h}_y = \frac{z}{M}\cos\theta + \frac{\ell}{3}\dot{\theta}^2\cos\theta - \frac{\ell v_2}{3z}\sin\theta - g - \frac{\ell}{3} \ddot{\theta} \sin\theta - \frac{\ell}{3} \dot{\theta}^2 \cos\theta
+    $$
+
+    Après annulation des termes $\dot{\theta}^2$ :
+
+
+    $$ 
+    \ddot{h}_y = \frac{z}{M}\cos\theta - \frac{\ell v_2}{3z}\sin\theta - g - \frac{\ell}{3} \ddot{\theta} \sin\theta 
+    $$
+
+    On a la relation $\ddot{\theta} = -v_2/z$ 
+
+
+    $$ 
+    \ddot{h}_x = -\frac{z}{M}\sin\theta - \frac{\ell v_2}{3z}\cos\theta - \frac{\ell}{3} \left(-\frac{v_2}{z}\right) \cos\theta
+    $$
+
+
+
+    $$ 
+    \ddot{h}_x = -\frac{z}{M}\sin\theta 
+    $$
+
+
+
+    **Pour $\ddot{h}_y$ :**
+
+    $$ 
+    \ddot{h}_y = \frac{z}{M}\cos\theta - \frac{\ell v_2}{3z}\sin\theta - g - \frac{\ell}{3} \left(-\frac{v_2}{z}\right) \sin\theta 
+    $$
+
+    Il reste :
+
+
+    $$ 
+    \ddot{h}_y = \frac{z}{M}\cos\theta - g 
+    $$
+
+
+
+    $$ 
+    \boxed{ \ddot{h}_x = -(z/M) \sin\theta } 
+    $$
+
+    $$
+    \boxed{ \ddot{h}_y = (z/M) \cos\theta - g } 
+    $$
 
     """
     )
